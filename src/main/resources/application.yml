@@ -1,0 +1,110 @@
+#server:
+#  port: 8080
+---
+
+spring:
+  profiles: default
+
+  #EC2 설치 마리아DB. H2 사용시 9~13라인 주석처리
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://amf-3-2-onepostest.ckputrdkt11j.ap-northeast-2.rds.amazonaws.com:3306/ONEPOS?characterEncoding=UTF-8&serverTimezone=UTC
+    username: admin
+    password: chlrkddlwh
+
+  h2: # H2 사용시 웹브라우져 DB 접속 http://localhost:8085/h2-consol
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+  cloud:
+    stream:
+      kafka:
+        binder:
+          #brokers: localhost:29092 #Gitpod
+          #brokers: localhost:9092 #로컬
+          brokers: 3.34.5.164:9092 #EC2 설치 kafka
+        streams:
+          binder:
+            configuration:
+              default:
+                key:
+                  serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+                value:
+                  serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+      bindings:
+        event-in:
+          group: store #각자 다르게 지정. 토픽은 onepos로 고정
+          destination: onepos
+          contentType: application/json
+        event-out:
+          destination: onepos
+          contentType: application/json
+
+logging:
+  level:
+    org.hibernate.type: trace
+    org.springframework.cloud: debug
+server:
+  port: 8085
+
+api:
+  delivery:
+    url: http://localhost:8082
+
+feign:
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    # 전역설정
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610
+---
+
+spring:
+  profiles: docker
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: my-kafka.kafka.svc.cluster.local:29092
+        streams:
+          binder:
+            configuration:
+              default:
+                key:
+                  serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+                value:
+                  serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+      bindings:
+        event-in:
+          group: order
+          destination: clothrental
+          contentType: application/json
+        event-out:
+          destination: clothrental
+          contentType: application/json
+
+api:
+  delivery:
+    url: http://delivery:8080
+
+feign:
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    # 전역설정
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610
