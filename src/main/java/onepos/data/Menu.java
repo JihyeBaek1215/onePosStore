@@ -8,13 +8,20 @@ public class Menu {
 
     @Id @GeneratedValue
     int menuId;
-    int storeId ; //매장ID로 조회 하는 방법 구현 필요
+    int storeId ;
     String menuNm;
     int amt ;
     int qty ;
+    String servTm ; // 평균 조리시간
     // int prodId ; // 식자재 재고관리 추가시 구현
     // String prodNm ;
 
+    public String getServTm() {
+        return servTm;
+    }
+    public void setServTm(String servTm) {
+        this.servTm = servTm;
+    }
     public int getMenuId() {
         return menuId;
     }

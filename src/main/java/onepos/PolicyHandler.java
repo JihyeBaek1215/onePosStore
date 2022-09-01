@@ -6,69 +6,77 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import onepos.config.kafka.KafkaProcessor;
 import onepos.data.Sale;
 import onepos.data.saleRepository;
-import onepos.datakafka.Ordered;
+import onepos.data.menuRepository;
+import onepos.datakafka.Paid;
+import onepos.datakafka.Served;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import java.util.Optional;
 
 @Service
 public class PolicyHandler{
-    // @StreamListener(KafkaProcessor.INPUT)
-    // public void onStringEventListener(@Payload String eventString){
 
-    // }
+
+    /*이벤트 발생시간을 String 변환 저장시 사용*/
+    final LocalDateTime localDateTimeNow = LocalDateTime.now();
+    String parsedLocalDateTimeNow = localDateTimeNow.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+
 
     @Autowired
     saleRepository SaleRepository ;
+    @Autowired
+    menuRepository MenuRepository ;
 
 
-
-    @StreamListener(KafkaProcessor.INPUT)  //Test . 서빙 완료시 저장되도록 변경
-    public void whenOrderCreated(@Payload Ordered ordered){
-
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenOrderCreated(@Payload Paid paid){
 
 
-        // try {
-                System.out.println("##### listener UpdateStatus: " + ordered.toJson());
+                System.out.println("##### listener UpdateStatus: " + paid.toJson());
 
+
+                int tempMenuId = 3 ; //계산에서 넘겨줄 경우 해당 값으로 변경
+                int tempMenuQty = 1 ; //계산에서 넘겨줄 경우 해당 값으로 변경
+                /*계산완료시*/
+            if(paid.getPayStatus().equals("PaySucess")){
+
+                /*1.매출등록 */
                 Sale sale = new Sale();
-                sale.setOrderNumber(ordered.getQty()); // MSA 간 전달 파리미터/유형 협의 필요!!!!!!!!!!. Test 를 위해 임의값 대신 저장/
-                sale.setStoreId(1111);
-                sale.setStoreName(ordered.getProductId());
-                sale.setSaleMenuId (1234);
-                sale.setSaleAmt(ordered.getQty());
-                sale.setSaleQty(ordered.getQty());
+                sale.setOrderNumber(paid.getOrderId()); // MSA 간 전달 파리미터/유형 협의 필요!!!!!!!!!!. Test 를 위해 임의값 대신 저장/
+                sale.setSaleAmt(paid.getPrice());
+                sale.setStoreId(paid.getStoreId());
+                sale.setSaleDtm(LocalDateTime.now());
+              //  sale.setSaleMenuId(paid.getMenuId()); //계산에서 넘겨줄 경우 해당 값으로 세팅
+              //  sale.setSaleMenuNm(paid.getMenuNm()) //계산에서 넘겨줄 경우 해당 값으로 세팅
+              //  sale.setSaleQty(paid.getQty()); //계산에서 넘겨줄 경우 해당 값으로 세팅
                 SaleRepository.save(sale);
-            // }catch (Exception e){
-            //     e.printStackTrace();
-            // }
+
+
+                /*2.메뉴수량 차감 */
+                MenuRepository.findById(tempMenuId).ifPresent(menu->{
+                    menu.setQty(menu.getQty() - tempMenuQty);
+                    MenuRepository.save(menu) ;
+                });
+
+            }
 
     }
 
-    // @StreamListener(KafkaProcessor.INPUT)
-    // public void wheneverShipped_UpdateStatusTest(@Payload Delivered delivered){
+            /*서빙완료시 완료시간 갱신 . 테스트 안해봄*/
+     public void whenServed(@Payload Served served){
+        System.out.println("##### listener UpdateStatus: " + served.toJson());
+        SaleRepository.findById(served.getOrderId()).ifPresent(sale->{
+            sale.setFinishedDtm(LocalDateTime.now());
+            SaleRepository.save(sale) ;
+        });
+     }
 
-    //     if(delivered.isMe()){
-    //         System.out.println("##### listener Delivered!!!!!!!!!!### : " + delivered.toJson());
-    //     }
-    // }
-
-
-    // @StreamListener(KafkaProcessor.INPUT)
-    // public void wheneverReviewed_UpdateStatus(@Payload Reviewed reviewed){
-
-    //     if(reviewed.isMe()){
-    //         Optional<Kitchen> orderOptional = kitchenRepository.findById(reviewed.getId());
-    //         Kitchen order = orderOptional.get();
-    //         order.setStatus(reviewed.getStatus());
-
-    //         kitchenRepository.save(order);
-    //         System.out.println("##### listener UpdateStatus : " + reviewed.toJson());
-    //     }
-    // }
 
 }

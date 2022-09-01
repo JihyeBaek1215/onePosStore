@@ -10,6 +10,13 @@ import onepos.data.StoreRespDto;
 import onepos.data.storeRepository;
 import onepos.data.StoreLoginReqDto;
 
+import onepos.data.Sale;
+import onepos.data.SaleRespDto;
+import onepos.data.saleRepository;
+import java.util.ArrayList;
+import java.util.List;
+
+
 @RequiredArgsConstructor
 @Service
 public class StoreService {
@@ -32,6 +39,21 @@ public class StoreService {
 	public Store 로그인(StoreLoginReqDto StoreLoginReqDto) {
 		Store storeEntity = storeRepository.findByStoreIdAndPassWd(StoreLoginReqDto.getStoreId(), StoreLoginReqDto.getPassWd());
 		return storeEntity;
+	}
+
+
+	private final saleRepository saleRepository;
+
+	@Transactional(readOnly = true) //메뉴조회 변경감지 자체를 수행안한다. select하는곳에는 다 붙혀줘야함
+	public List<SaleRespDto> 매출조회 (int id) {
+
+		List<Sale> saleEntity = saleRepository.searchSale(id);
+
+		List<SaleRespDto> SaleRespDto = new ArrayList<>();
+	    for (Sale sale : saleEntity) {
+	    	SaleRespDto.add(new SaleRespDto(sale));
+		}
+		return SaleRespDto;
 	}
 
 

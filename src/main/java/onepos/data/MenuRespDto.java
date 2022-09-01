@@ -15,6 +15,7 @@ public class MenuRespDto {
   String menuNm;
   int amt ;
   int qty ;
+  String servTm ;
 
   private LocalDateTime createTime;
 
@@ -24,7 +25,8 @@ public class MenuRespDto {
     	this.menuNm =menu.getMenuNm();
       this.amt =menu.getAmt();
       this.qty =menu.getQty();
-
+      this.storeId =menu.getStoreId();
+      this.servTm =menu.getServTm();
     }
 
 

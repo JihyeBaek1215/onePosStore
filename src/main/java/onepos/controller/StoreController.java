@@ -30,7 +30,7 @@ public class StoreController {
 
 	private final StoreService storeService;
 
-	@GetMapping("/store/{id}") // 한건 찾기. 미사용 (테스트)
+	@GetMapping("/stores/{id}") // 한건 찾기
 	public CommonRespDto<?> findById(@PathVariable int id){
 
 		return new CommonRespDto<>(1,"성공",storeService.한건찾기(id));
@@ -48,6 +48,13 @@ public class StoreController {
 			return new CommonRespDto<>(1,"성공",storeEntity);
 		}
 	}
+
+	@GetMapping("/sales/{id}") //
+	public CommonRespDto<?> findByIdSale(@PathVariable int id){
+
+		return new CommonRespDto<>(1,"성공",storeService.매출조회(id));
+	}
+
 
 
 }
