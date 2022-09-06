@@ -39,44 +39,53 @@ public class PolicyHandler{
     public void whenOrderCreated(@Payload Paid paid){
 
 
-                System.out.println("##### listener UpdateStatus: " + paid.toJson());
 
 
-                int tempMenuId = 3 ; //계산에서 넘겨줄 경우 해당 값으로 변경
-                int tempMenuQty = 1 ; //계산에서 넘겨줄 경우 해당 값으로 변경
+        if(paid.isMe()){
+            System.out.println("##### listener1 UpdateStatus: " + paid.toJson());
                 /*계산완료시*/
             if(paid.getPayStatus().equals("PaySucess")){
-
+                int tempMenuId = Integer.parseInt(paid.getMenuId()) ;
                 /*1.매출등록 */
                 Sale sale = new Sale();
-                sale.setOrderNumber(paid.getOrderId()); // MSA 간 전달 파리미터/유형 협의 필요!!!!!!!!!!. Test 를 위해 임의값 대신 저장/
+                sale.setOrderNumber(paid.getOrderId());
                 sale.setSaleAmt(paid.getPrice());
                 sale.setStoreId(paid.getStoreId());
                 sale.setSaleDtm(LocalDateTime.now());
-              //  sale.setSaleMenuId(paid.getMenuId()); //계산에서 넘겨줄 경우 해당 값으로 세팅
-              //  sale.setSaleMenuNm(paid.getMenuNm()) //계산에서 넘겨줄 경우 해당 값으로 세팅
-              //  sale.setSaleQty(paid.getQty()); //계산에서 넘겨줄 경우 해당 값으로 세팅
+                sale.setSaleMenuId(tempMenuId);
+                sale.setSaleMenuNm(paid.getMenuNm()) ;
+                sale.setSaleQty(paid.getQty());
                 SaleRepository.save(sale);
 
 
                 /*2.메뉴수량 차감 */
                 MenuRepository.findById(tempMenuId).ifPresent(menu->{
-                    menu.setQty(menu.getQty() - tempMenuQty);
+                    menu.setQty(menu.getQty() - paid.getQty());
                     MenuRepository.save(menu) ;
                 });
 
             }
+        }
+
 
     }
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenOrderCreated(@Payload Served served){
 
-            /*서빙완료시 완료시간 갱신 . 테스트 안해봄*/
-     public void whenServed(@Payload Served served){
-        System.out.println("##### listener UpdateStatus: " + served.toJson());
-        SaleRepository.findById(served.getOrderId()).ifPresent(sale->{
+
+        if(served.isMe()){
+            System.out.println("##### listener2 UpdateStatus: " + served.toJson());
+              /*서빙완료시 완료시간 갱신 . */
+            SaleRepository.findById(served.getOrderId()).ifPresent(sale->{
             sale.setFinishedDtm(LocalDateTime.now());
             SaleRepository.save(sale) ;
         });
-     }
+        }
+
+
+    }
+
+
 
 
 }

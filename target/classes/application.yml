@@ -42,7 +42,6 @@ spring:
                   serde: org.apache.kafka.common.serialization.Serdes$StringSerde
       bindings:
         event-in:
-          group: store #각자 다르게 지정. 토픽은 onepos로 고정
           destination: onepos
           contentType: application/json
         event-out:
