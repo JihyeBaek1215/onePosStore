@@ -72,11 +72,29 @@ hystrix:
 
 spring:
   profiles: docker
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://amf-3-2-onepostest.ckputrdkt11j.ap-northeast-2.rds.amazonaws.com:3306/ONEPOS?characterEncoding=UTF-8&serverTimezone=UTC
+    username: admin
+    password: chlrkddlwh
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+
+
   cloud:
     stream:
       kafka:
         binder:
-          brokers: my-kafka.kafka.svc.cluster.local:29092
+          #brokers: my-kafka.kafka.svc.cluster.local:9092
+          brokers: 3.38.197.55:9092
         streams:
           binder:
             configuration:
@@ -87,12 +105,13 @@ spring:
                   serde: org.apache.kafka.common.serialization.Serdes$StringSerde
       bindings:
         event-in:
-          group: order
-          destination: clothrental
+          destination: onepos
           contentType: application/json
         event-out:
-          destination: clothrental
+          destination: onepos
           contentType: application/json
+
+
 
 api:
   delivery:
