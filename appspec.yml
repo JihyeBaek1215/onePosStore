@@ -5,4 +5,4 @@ files:
     destination: /home/environment/build/
 hooks:
   BeforeInstall:
-    - location: /beforeInstall.bash
+    - location: /beforeInstall.sh
