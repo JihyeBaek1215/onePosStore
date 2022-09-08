@@ -3,6 +3,6 @@ os: linux
 files:
   - source: /
     destination: /home/environment/build/
-hooks:
-  BeforeInstall:
-    - location: beforeInstall.sh
+#hooks:
+#  BeforeInstall:
+#    - location: beforeInstall.sh
